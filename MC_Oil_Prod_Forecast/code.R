@@ -18,29 +18,60 @@ max_prod_well <- 1000     # highest well production in BOPD
 shape1 <- 2
 shape2 <- 4
 num_wells <- 100
-runs <- 500
+runs <- 10000
 
 
 # MC Simulation -------------------------------------------------------------------------------
 
-
+sims <- c()
+total_prod <- c()
 for (i in c(1:runs)) {
       
+      beta <- sort(rbeta(num_wells, shape1 = shape1, shape2 = shape2))
+      well_prod <- min_prod_well + (beta * max_prod_well - min_prod_well)
+      
+      if (is.null(sims)) {
+            sims <- well_prod
+            total_prod <- sum(well_prod)
+      } else {
+            sims <- sims + well_prod
+            total_prod <- append(total_prod, sum(well_prod))
+      }
 }
+sims <- round( sims / runs, 1)
+mc <- data.frame(Prod = sims)
+ggplot(mc, aes(x = Prod)) + geom_histogram()
+
+prod_df <- data.frame(total = total_prod)
+ggplot(prod_df, aes(x = total)) + geom_histogram()
+
+ggplot(prod_df, aes(x = total)) + 
+      stat_ecdf(geom = "step", pad = FALSE) +
+      geom_vline(xintercept = quantile(total_prod, 0.1), 
+                 size = 2, 
+                 color = 'blue',
+                 alpha = 0.5) +
+      annotate("segment",
+               x = min(total_prod), xend = quantile(total_prod, 0.1),
+               y = 0.1, yend = 0.1,
+               size = 2, color = 'green', alpha = 0.5) +
+      annotate("text",
+               label = round(quantile(total_prod, 0.1), 0),
+               x = quantile(total_prod, 0.1) + 500, y = 0.1,
+               color = 'blue') +
+      annotate("rect",
+               xmin = quantile(total_prod, 0.1), xmax = max(total_prod),
+               ymin = 0, ymax = 1,
+               fill = 'blue', alpha = 0.1) +
+      geom_hline(yintercept = c(0,1), size = 1, linetype = "dotted") +
+      labs(
+            title = "CDF - Field Production",
+            subtitle = "Cumulative Density Function"
+      ) +
+      scale_y_continuous(labels = scales::percent) +
+      coord_cartesian(xlim = c(min(total_prod), max(total_prod)))
 
 
-
-
-
-
-n <- num_wells * runs
-mc <- rbeta(n, shape1 = shape1, shape2 = shape2) 
-mc <- data.frame(beta = mc)
-mc$Prod <- min_prod_well + (mc$beta * max_prod_well - min_prod_well)
-
-# Calculate CDF
-mc$cdf <- mc$Prod
-mc$cdf[-1] <- 
 
 
 # Results -------------------------------------------------------------------------------------
