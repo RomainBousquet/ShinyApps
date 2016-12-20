@@ -45,31 +45,37 @@ ggplot(mc, aes(x = Prod)) + geom_histogram()
 prod_df <- data.frame(total = total_prod)
 ggplot(prod_df, aes(x = total)) + geom_histogram()
 
+
+prob <- 0.1
+prod_prob <- round(quantile(total_prod, prob), 0)
+
+plot_expl <- paste0("There is a \n", prob * 100, "% Probability \n",
+                    "of producing less than \n", prod_prob, " BOPD.")
+
 ggplot(prod_df, aes(x = total)) + 
-      stat_ecdf(geom = "step", pad = FALSE) +
-      geom_vline(xintercept = quantile(total_prod, 0.1), 
+      stat_ecdf(geom = "step", pad = FALSE, size = 1) +
+      geom_vline(xintercept = prod_prob, 
                  size = 2, 
                  color = 'blue',
                  alpha = 0.5) +
-      annotate("segment",
-               x = min(total_prod), xend = quantile(total_prod, 0.1),
-               y = 0.1, yend = 0.1,
-               size = 2, color = 'green', alpha = 0.5) +
-      annotate("text",
-               label = round(quantile(total_prod, 0.1), 0),
-               x = quantile(total_prod, 0.1) + 500, y = 0.1,
-               color = 'blue') +
+      geom_hline(yintercept = prob, size = 1, linetype = "dashed",
+                 color = "blue") +
+      annotate("text", label = plot_expl,
+               x = min(total_prod), y = 0.9,
+               color = 'blue', hjust = 0, size = 6, vjust = 1) +
       annotate("rect",
-               xmin = quantile(total_prod, 0.1), xmax = max(total_prod),
+               xmin = prod_prob, xmax = max(total_prod),
                ymin = 0, ymax = 1,
                fill = 'blue', alpha = 0.1) +
       geom_hline(yintercept = c(0,1), size = 1, linetype = "dotted") +
       labs(
-            title = "CDF - Field Production",
-            subtitle = "Cumulative Density Function"
+            title = "Uncertainty in Daily Production",
+            subtitle = "Probability that Daily Production falls below a certain value"
       ) +
-      scale_y_continuous(labels = scales::percent) +
-      coord_cartesian(xlim = c(min(total_prod), max(total_prod)))
+      scale_y_continuous(labels = scales::percent, 
+                         breaks = seq(0, 1, 0.1)) +
+      xlab("Total Daily Production in BOPD") +
+      ylab("Probability of Daily Production being lower than indicated")
 
 
 
@@ -107,4 +113,37 @@ g + annotate("text",
              y = c(y_max * 0.95, y_max * 0.9),
              color = c("red", "blue"),
              hjust = 0)
+
+
+
+
+
+x <- seq(0, 1, length=1000)
+prod <- seq(50, 1000, length = 1000)
+df_beta <- data.frame(x = prod, beta = dbeta(x, 2, 2))
+
+ggplot(df_beta, aes(x = prod, y = beta)) + geom_line(size = 1.5, color = "blue")
+
+
+min_prod_well <- 50
+max_prod_well <- 1000
+
+set.seed(1235)
+beta <- sort(rbeta(50000, shape1 = 2, shape2 = 5))
+well_prod <- 2*min_prod_well + (beta * max_prod_well - min_prod_well)
+
+df <- data.frame(Production = well_prod)
+
+ggplot(df, aes(x = Production)) + 
+      geom_density(fill = "blue", alpha = 0.3) +
+      labs(
+            title = "Production Distribution Plot",
+            subtitle = "Based on randomized beta distribution"
+      ) +
+      ylab("Density") + xlab("Single Well Production in BOPD") +
+      scale_y_continuous(labels = scales::percent) +
+      scale_x_continuous(breaks = seq(50, 1000, 50))
+
+summary(df)
+
 
