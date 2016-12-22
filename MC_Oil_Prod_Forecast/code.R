@@ -115,9 +115,6 @@ g + annotate("text",
              hjust = 0)
 
 
-
-
-
 x <- seq(0, 1, length=1000)
 prod <- seq(50, 1000, length = 1000)
 df_beta <- data.frame(x = prod, beta = dbeta(x, 2, 2))
@@ -145,5 +142,79 @@ ggplot(df, aes(x = Production)) +
       scale_x_continuous(breaks = seq(50, 1000, 50))
 
 summary(df)
+
+num_wells <- 50
+alpha <- 2
+beta <- 4
+
+# Create Beta distribution samples from input
+
+library(plyr)
+
+distr <- rbeta(num_wells, alpha, beta)
+well_prod <- 2*min_prod_well + (distr * max_prod_well - min_prod_well)
+
+df <- data.frame(well_prod)
+
+df$upper_prod <- round_any(df$well_prod, 100, f = ceiling)
+df$lab <- paste0(df$upper_prod-100, " - ", df$upper_prod)
+df$lab <- as.factor(df$lab)
+
+c <- dplyr::count(df, lab)
+
+flevels <- rev(levels(c$lab))
+
+ggplot(c, aes(x = lab, y = n)) +
+      geom_bar(stat = 'identity', fill = "deepskyblue1", alpha = 0.7) +
+      scale_x_discrete(limits = flevels) +
+      coord_flip() +
+      labs(
+            title = paste0("Example Distribution with ", num_wells, " wells"),
+            subtitle = "Based on the distribution input parameters"
+      ) +
+      xlab("Production Range - BOPD") +
+      ylab("Number of wells that fall within each range bucket") +
+      geom_text(aes(x = lab, y = n, label = n), hjust = 1, nudge_y = -0.4, fontface = "bold")
+
+
+
+iterations <- 100
+num_wells <- 100
+alpha <- 4
+beta <- 4
+
+distr <- seq(0, 0, length = num_wells)
+for (i in c(1:iterations)) {
+      
+      distr <- distr + sort(rbeta(num_wells, alpha, beta))
+      
+}
+
+max_prod_well <- 2000
+min_prod_well <- 0
+
+distr <- distr / iterations
+well_prod <- 2*min_prod_well + (distr * max_prod_well - min_prod_well)
+
+df <- data.frame(well_prod)
+df$upper_prod <- round_any(df$well_prod, 100, f = ceiling)
+
+c <- dplyr::count(df, upper_prod)
+#c <- dplyr::arrange(c, upper_prod)
+c$lab <- paste0(c$upper_prod-100, " - ", c$upper_prod)
+
+ggplot(c, aes(x = upper_prod, y = n)) +
+      geom_bar(stat = 'identity', fill = "deepskyblue1", alpha = 0.7) +
+      scale_x_continuous(breaks = c$upper_prod,
+                         labels = paste0(c$upper_prod-100, " - ", c$upper_prod)) +
+      coord_flip() +
+      labs(
+            title = paste0("Example Distribution with ", num_wells, " wells"),
+            subtitle = "Based on the distribution input parameters"
+      ) +
+      xlab("Production Range - BOPD") +
+      ylab("Number of wells that fall within each range bucket") +
+      geom_text(aes(x = upper_prod, y = n, label = n), hjust = 1, nudge_y = -0.4, fontface = "bold")
+
 
 
