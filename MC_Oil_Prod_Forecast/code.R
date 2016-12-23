@@ -201,7 +201,7 @@ df$upper_prod <- round_any(df$well_prod, 100, f = ceiling)
 
 c <- dplyr::count(df, upper_prod)
 #c <- dplyr::arrange(c, upper_prod)
-c$lab <- paste0(c$upper_prod-100, " - ", c$upper_prod)
+#c$lab <- paste0(c$upper_prod-100, " - ", c$upper_prod)
 
 ggplot(c, aes(x = upper_prod, y = n)) +
       geom_bar(stat = 'identity', fill = "deepskyblue1", alpha = 0.7) +

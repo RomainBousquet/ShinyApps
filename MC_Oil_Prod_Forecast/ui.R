@@ -32,9 +32,9 @@ shinyUI(fluidPage(
          
          # Shape Parameters alpha (= shape1) and beta (= shape2)
          sliderInput("alpha", "Shape Parameter 1:",
-                     min = 2, max = 10, value = 2),
+                     min = 1, max = 20, value = 2),
          sliderInput("beta", "Shape Parameter 2:",
-                     min = 2, max = 10, value = 4),
+                     min = 1, max = 20, value = 4),
          
          # 'Run MCS' Action Button
          tags$hr(),
