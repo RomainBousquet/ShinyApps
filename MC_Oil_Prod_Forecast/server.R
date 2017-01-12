@@ -11,7 +11,7 @@ library(shiny)
 library(plyr)
 library(ggplot2)
 
-# Define server logic required to draw a histogram
+# Define server logic
 shinyServer(function(input, output) {
    
    v <- reactiveValues(doMCS = FALSE)
